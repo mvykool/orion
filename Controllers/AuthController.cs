@@ -1,45 +1,60 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using orion.Models;
+using orion.Data;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.Extensions.Configuration;
 
 namespace orion.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController : Controller
+    public class AuthController : ControllerBase
     {
-        public static User user = new User();
+        private readonly OrionDbContext _dbContext;
         private readonly IConfiguration _configuration;
 
-        //accessing the token
-        public AuthController(IConfiguration configuration)
+        public AuthController(OrionDbContext dbContext, IConfiguration configuration)
         {
+            _dbContext = dbContext;
             _configuration = configuration;
         }
 
         [HttpPost("register")]
         public ActionResult<User> Register(UserDto request)
         {
-            string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-
-            var newUser = new User
+            try
             {
-                Id = GenerateUserId(), // Generate the Id for the user
-                Username = request.Username,
-                PasswordHash = passwordHash
-            };
+                string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-            // Save the new user in the database or any other storage
+                var newUser = new User
+                {
+                    Username = request.Username,
+                    PasswordHash = passwordHash
+                };
 
-            return Ok(newUser);
+                // Save the new user to the database
+                _dbContext.Users.Add(newUser);
+                _dbContext.SaveChanges();
+
+                return Ok(newUser);
+            }
+            catch (Exception ex)
+            {
+                // Log or display the exception message and inner exception
+                Console.WriteLine($"An error occurred while saving the entity changes: {ex.Message}");
+                Console.WriteLine($"Inner Exception: {ex.InnerException}");
+
+                // Return an appropriate response to the client
+                return StatusCode(500, "An error occurred while saving the entity changes. Please try again later.");
+            }
         }
 
         private int GenerateUserId()
         {
-            // Logic to generate a unique Id for the user
+            // Your logic to generate a unique Id for the user
             // You can use various methods, such as using a database-generated Id or a custom logic
 
             // For simplicity, you can use a random number generator for now
@@ -50,14 +65,16 @@ namespace orion.Controllers
         [HttpPost("login")]
         public ActionResult<User> Login(UserDto request)
         {
-            if (user.Username != request.Username)
+            var user = _dbContext.Users.FirstOrDefault(u => u.Username == request.Username);
+
+            if (user == null)
             {
-                return BadRequest("user not found");
+                return BadRequest("User not found");
             }
 
             if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
-                return BadRequest("wrong password");
+                return BadRequest("Wrong password");
             }
 
             string token = CreateToken(user);
@@ -72,7 +89,7 @@ namespace orion.Controllers
                 new Claim(ClaimTypes.Name, user.Username)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value!));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
