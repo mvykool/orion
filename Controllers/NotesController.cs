@@ -6,6 +6,15 @@ using orion.Data;
 
 namespace orion.Controllers
 {
+    public class NoteCreateModel
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string Content { get; set; }
+        public int UserId { get; set; }
+    }
+
+
     [Route("api/[controller]")]
     [ApiController]
     public class NotesController : ControllerBase
@@ -44,21 +53,30 @@ namespace orion.Controllers
 
         //POST
         [HttpPost]
-        public async Task<ActionResult<List<Notes>>> AddHero(Notes note)
+        public async Task<ActionResult<Notes>> AddHero([FromBody] NoteCreateModel note)
         {
-            _context.Notes.Add(note);
+            // Create a new Note instance
+            var newNote = new Notes
+            {
+                Title = note.Title,
+                Content = note.Content,
+                UserId = note.UserId
+            };
+
+            _context.Notes.Add(newNote);
             await _context.SaveChangesAsync();
-            return Ok(await _context.Notes.ToListAsync());
+
+            return Ok(newNote);
         }
 
         //PUT
         [HttpPut]
-        public async Task<ActionResult<List<Notes>>> UpdateHero(Notes updatedNote)
+        public async Task<ActionResult<Notes>> UpdateHero([FromBody] NoteCreateModel updatedNote)
         {
             var dbNote = await _context.Notes.FindAsync(updatedNote.Id);
             if (dbNote == null)
             {
-                return BadRequest("note no found");
+                return BadRequest("note not found");
             }
 
             dbNote.Title = updatedNote.Title;
@@ -66,7 +84,7 @@ namespace orion.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(await _context.Notes.ToListAsync());
+            return Ok(dbNote);
         }
 
         //DELETE
