@@ -40,14 +40,9 @@ namespace orion.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserId1")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("UserId1");
 
                     b.ToTable("Notes");
                 });
@@ -75,15 +70,9 @@ namespace orion.Migrations
 
             modelBuilder.Entity("orion.Models.Notes", b =>
                 {
-                    b.HasOne("orion.Models.User", null)
+                    b.HasOne("orion.Models.User", "User")
                         .WithMany("Notes")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("orion.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

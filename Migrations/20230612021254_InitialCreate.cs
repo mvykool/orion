@@ -5,11 +5,25 @@
 namespace orion.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateNotesUserRelation : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Notes",
                 columns: table => new
@@ -18,8 +32,7 @@ namespace orion.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    UserId1 = table.Column<int>(type: "int", nullable: false)
+                    UserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -30,24 +43,12 @@ namespace orion.Migrations
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    // Comment out the following line
-                    // table.ForeignKey(
-                    //     name: "FK_Notes_Users_UserId1",
-                    //     column: x => x.UserId1,
-                    //     principalTable: "Users",
-                    //     principalColumn: "Id",
-                    //     onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Notes_UserId",
                 table: "Notes",
                 column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Notes_UserId1",
-                table: "Notes",
-                column: "UserId1");
         }
 
         /// <inheritdoc />
@@ -55,6 +56,9 @@ namespace orion.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Notes");
+
+            migrationBuilder.DropTable(
+                name: "Users");
         }
     }
 }

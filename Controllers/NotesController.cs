@@ -50,11 +50,16 @@ namespace orion.Controllers
             }
             return Ok(note);
         }
-
-        //POST
         [HttpPost]
         public async Task<ActionResult<Notes>> AddHero([FromBody] NoteCreateModel note)
         {
+            // Check if the user with the specified ID exists
+            var user = await _context.Users.FindAsync(note.UserId);
+            if (user == null)
+            {
+                return BadRequest("Invalid user ID");
+            }
+
             // Create a new Note instance
             var newNote = new Notes
             {
@@ -71,12 +76,12 @@ namespace orion.Controllers
 
         //PUT
         [HttpPut]
-        public async Task<ActionResult<Notes>> UpdateHero([FromBody] NoteCreateModel updatedNote)
+        public async Task<ActionResult<Notes>> UpdateHero([FromBody] Notes updatedNote)
         {
             var dbNote = await _context.Notes.FindAsync(updatedNote.Id);
             if (dbNote == null)
             {
-                return BadRequest("note not found");
+                return BadRequest("Note not found");
             }
 
             dbNote.Title = updatedNote.Title;
