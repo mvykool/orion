@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using orion.Models;
 using orion.Data;
+using orion.Models;
 
 namespace orion.Controllers
 {
@@ -14,53 +13,46 @@ namespace orion.Controllers
         public int UserId { get; set; }
     }
 
-
     [Route("api/[controller]")]
     [ApiController]
     public class NotesController : ControllerBase
     {
-
         private readonly OrionDbContext _context;
 
-        //constructor
         public NotesController(OrionDbContext context)
         {
             _context = context;
         }
 
-
         //GET
         [HttpGet]
-        public async Task<ActionResult<List<Notes>>> Get()
+        public async Task<ActionResult<IEnumerable<Notes>>> Get()
         {
-
             return Ok(await _context.Notes.ToListAsync());
         }
 
-        //GET single element
+        //GET
         [HttpGet("{id}")]
         public async Task<ActionResult<Notes>> Get(int? id)
         {
-
-
-            var note = _context.Notes.FindAsync(id);
+            var note = await _context.Notes.FirstOrDefaultAsync(n => n.Id == id);
             if (note == null)
             {
-                return BadRequest("hero no found");
+                return BadRequest("Note not found");
             }
             return Ok(note);
         }
+
+        //POST
         [HttpPost]
-        public async Task<ActionResult<Notes>> AddHero([FromBody] NoteCreateModel note)
+        public async Task<ActionResult<Notes>> AddNote([FromBody] NoteCreateModel note)
         {
-            // Check if the user with the specified ID exists
             var user = await _context.Users.FindAsync(note.UserId);
             if (user == null)
             {
                 return BadRequest("Invalid user ID");
             }
 
-            // Create a new Note instance
             var newNote = new Notes
             {
                 Title = note.Title,
@@ -75,10 +67,10 @@ namespace orion.Controllers
         }
 
         //PUT
-        [HttpPut]
-        public async Task<ActionResult<Notes>> UpdateHero([FromBody] Notes updatedNote)
+        [HttpPut("{id}")]
+        public async Task<ActionResult<Notes>> UpdateHero(int id, [FromBody] Notes updatedNote)
         {
-            var dbNote = await _context.Notes.FindAsync(updatedNote.Id);
+            var dbNote = await _context.Notes.FindAsync(id);
             if (dbNote == null)
             {
                 return BadRequest("Note not found");
@@ -87,6 +79,18 @@ namespace orion.Controllers
             dbNote.Title = updatedNote.Title;
             dbNote.Content = updatedNote.Content;
 
+            // Only update the UserId if it is provided in the updatedNote object
+            if (updatedNote.UserId != 0)
+            {
+                dbNote.UserId = updatedNote.UserId;
+            }
+
+            // Only update the User if it is provided in the updatedNote object
+            if (updatedNote.User != null)
+            {
+                dbNote.User = updatedNote.User;
+            }
+
             await _context.SaveChangesAsync();
 
             return Ok(dbNote);
@@ -94,18 +98,17 @@ namespace orion.Controllers
 
         //DELETE
         [HttpDelete("{id}")]
-        public async Task<ActionResult<List<Notes>>> Delete(int? id)
+        public async Task<ActionResult<Notes>> Delete(int? id)
         {
             var dbNote = await _context.Notes.FindAsync(id);
             if (dbNote == null)
             {
-                return BadRequest("note no found");
+                return BadRequest("Note not found");
             }
             _context.Notes.Remove(dbNote);
             await _context.SaveChangesAsync();
 
-            return Ok(await _context.Notes.ToListAsync());
+            return Ok(dbNote);
         }
     }
 }
-

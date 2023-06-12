@@ -5,7 +5,6 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
-using Microsoft.Extensions.Configuration;
 
 namespace orion.Controllers
 {
@@ -81,6 +80,18 @@ namespace orion.Controllers
 
             return Ok(token);
         }
+
+
+        //log out
+        [HttpPost("logout")]
+        public ActionResult Logout()
+        {
+            // Perform any server-side cleanup if necessary
+
+            // Return a response to the client indicating successful logout
+            return Ok("Logout successful");
+        }
+
 
         private string CreateToken(User user)
         {
