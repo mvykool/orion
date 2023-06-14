@@ -4,6 +4,18 @@ using orion.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CORSpolicy", builder =>
+    {
+        builder
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .WithOrigins("http//localhost:3000", "https://appname.azurestaticapps.net");
+    });
+});
+
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -25,6 +37,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+
+//set CORS
+app.UseCors("CORSpolicy");
 
 // Initialize the database
 using (var scope = app.Services.CreateScope())
