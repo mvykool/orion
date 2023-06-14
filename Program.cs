@@ -4,7 +4,7 @@ using orion.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//CORS policy
+// CORS policy
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CORSpolicy", builder =>
@@ -12,9 +12,10 @@ builder.Services.AddCors(options =>
         builder
         .AllowAnyMethod()
         .AllowAnyHeader()
-        .WithOrigins("http//localhost:3000", "https://appname.azurestaticapps.net");
+        .WithOrigins("http://localhost:3000", "https://appname.azurestaticapps.net");
     });
 });
+
 
 // Add services to the container.
 builder.Services.AddControllers();
