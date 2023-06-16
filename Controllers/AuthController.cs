@@ -96,19 +96,20 @@ namespace orion.Controllers
         private string CreateToken(User user)
         {
             List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.Username)
-            };
+    {
+        new Claim(ClaimTypes.Name, user.Username),
+        new Claim("id", user.Id.ToString()) // Include the ID claim in the token
+    };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
             var token = new JwtSecurityToken(
-                    claims: claims,
-                    expires: DateTime.Now.AddDays(1),
-                    signingCredentials: creds
-                );
+                claims: claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: creds
+            );
 
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
 

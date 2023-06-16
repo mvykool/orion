@@ -26,12 +26,21 @@ namespace orion.Controllers
 
         //GET
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Notes>>> Get()
+        public async Task<ActionResult<IEnumerable<Notes>>> GetAll(int? userId)
         {
-            return Ok(await _context.Notes.ToListAsync());
+            if (userId.HasValue)
+            {
+                var notes = await _context.Notes.Where(n => n.UserId == userId).ToListAsync();
+                return Ok(notes);
+            }
+            else
+            {
+                var notes = await _context.Notes.ToListAsync();
+                return Ok(notes);
+            }
         }
 
-        //GET
+        //GET with ID
         [HttpGet("{id}")]
         public async Task<ActionResult<Notes>> Get(int? id)
         {
